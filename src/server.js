@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
 
 const app = express();
 const port = 3000;
@@ -13,6 +14,11 @@ const connection = mysql.createConnection({
 });
 
 app.use(express.json());
+
+app.use(cors({
+    origin: 'http://localhost:8100',
+    credentials: true
+}));
 
 app.post('/registro', (req, res) => {
     const nuevoUsuario = req.body;
@@ -62,6 +68,22 @@ app.get('/tareas', (req, res) => {
         }
         res.status(200).json(results);
     });
+});
+
+app.get('/tareasUsuario/:id', (req, res) => {
+    const { id } = req.params;
+    buscarUsuario(id, (error) => {
+        if (error) {
+            return res.status(error.status).json({ mensaje: error.mensaje });
+        }
+        connection.query('SELECT * FROM tareas WHERE id_usuario = ?', id, (error, results) => {
+            if (error) {
+                console.error("Error al realizar la consulta:", error);
+                return res.status(500).json({ mensaje: 'Error al obtener las tareas' });
+            }
+            res.status(200).json(results);
+        });
+    })
 });
 
 app.post('/tareas', (req, res) => {
@@ -137,6 +159,21 @@ function buscarTarea(id, callback) {
         }
         if (results.length === 0) {
             callback({ status: 404, mensaje: 'Tarea no encontrada' });
+            return;
+        }
+        callback(null);
+    });
+}
+
+function buscarUsuario(id, callback) {
+    connection.query('SELECT * FROM usuarios WHERE id = ?', id, (error, results) => {
+        if (error) {
+            console.error("Error al realizar la consulta:", error);
+            callback({ status: 500, mensaje: 'Error al buscar el usuario' });
+            return;
+        }
+        if (results.length === 0) {
+            callback({ status: 404, mensaje: 'Usuario no encontrado' });
             return;
         }
         callback(null);
