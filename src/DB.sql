@@ -5,6 +5,7 @@ USE tododb;
 CREATE TABLE usuarios(
 	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     usuario VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
     contraseña VARCHAR(100) NOT NULL
 );
 
